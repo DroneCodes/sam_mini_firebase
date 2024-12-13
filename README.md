@@ -29,8 +29,8 @@ Sam's Mini Firebase is a lightweight, in-memory document database implementation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/mini-firebase.git
-cd mini-firebase
+git clone https://github.com/DroneCodes/sam_mini_firebase.git
+cd sam-mini-firebase
 ```
 
 2. Compile the project:
@@ -48,7 +48,7 @@ java Main
 When you run the application, you'll see an interactive menu:
 
 ```
---- Mini Firebase Terminal Interface ---
+--- Sam's Mini Firebase Terminal Interface ---
 1. Add Document
 2. Retrieve Document
 3. List Documents in Collection
