@@ -241,7 +241,7 @@ public class Main {
      * Main method to start the application
      */
     public static void main(String[] args) {
-        System.out.println("Welcome to Mini Firebase Terminal Interface!");
+        System.out.println("Welcome to Sam's Mini Firebase Terminal Interface!");
         Main mainApp = new Main();
         mainApp.start();
     }
