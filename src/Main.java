@@ -168,7 +168,7 @@ public class Main {
     }
 
     /**
-     * Find documents based on a field condition
+     * Find documents based on a field condition.
      */
     private void findDocuments() {
         System.out.print("Enter collection name: ");
