@@ -41,7 +41,7 @@ public class Main {
                     updateDocument();
                     break;
                 case 0:
-                    System.out.println("Exiting Mini Firebase Terminal Interface. Goodbye!");
+                    System.out.println("Exiting Sam's Mini Firebase Terminal Interface. Goodbye!");
                     return;
                 default:
                     System.out.println("Invalid choice. Please try again.");
