@@ -53,7 +53,7 @@ public class Main {
      * Print the menu of available operations
      */
     private void printMenu() {
-        System.out.println("\n--- Mini Firebase Terminal Interface ---");
+        System.out.println("\n---Sam's Mini Firebase Terminal Interface ---");
         System.out.println("1. Add Document");
         System.out.println("2. Retrieve Document");
         System.out.println("3. List Documents in Collection");
