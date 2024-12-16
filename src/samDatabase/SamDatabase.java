@@ -1,8 +1,7 @@
 package samDatabase;
 
+import com.google.gson.*;
 import models.Document;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
@@ -22,8 +21,12 @@ public class SamDatabase {
     private final Gson gson;
 
     public SamDatabase() {
-        // Initialize with pretty-printing for readability
-        this.gson = new GsonBuilder().setPrettyPrinting().create();
+        // Create a custom Gson builder to handle nested collections
+        GsonBuilder gsonBuilder = new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(Document.class, new DocumentTypeAdapter());
+
+        this.gson = gsonBuilder.create();
         this.collections = new ConcurrentHashMap<>();
 
         // Load existing data on initialization
@@ -151,5 +154,108 @@ public class SamDatabase {
                     return docValue != null && docValue.equals(value);
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Custom type adapter for Document to handle nested collections
+     */
+    private static class DocumentTypeAdapter
+            implements JsonSerializer<Document>, JsonDeserializer<Document> {
+
+        @Override
+        public JsonElement serialize(Document document, Type type,
+                                     JsonSerializationContext context) {
+            JsonObject jsonObject = new JsonObject();
+
+            // Serialize basic document data
+            jsonObject.add("id", new JsonPrimitive(document.getId()));
+
+            // Serialize document fields
+            JsonObject dataObject = new JsonObject();
+            for (Map.Entry<String, Object> entry : document.getData().entrySet()) {
+                dataObject.add(entry.getKey(), context.serialize(entry.getValue()));
+            }
+            jsonObject.add("data", dataObject);
+
+            // Serialize nested collections
+            JsonObject nestedCollectionsObject = new JsonObject();
+            // You would need a method in Document to get nested collections
+            // This is a placeholder and might need adjustment based on exact implementation
+            try {
+                java.lang.reflect.Method getNestedCollectionsMethod =
+                        document.getClass().getDeclaredMethod("getNestedCollections");
+                getNestedCollectionsMethod.setAccessible(true);
+                Map<String, Map<String, Document>> nestedCollections =
+                        (Map<String, Map<String, Document>>) getNestedCollectionsMethod.invoke(document);
+
+                for (Map.Entry<String, Map<String, Document>> collectionEntry :
+                        nestedCollections.entrySet()) {
+                    JsonObject collectionObject = new JsonObject();
+                    for (Map.Entry<String, Document> docEntry :
+                            collectionEntry.getValue().entrySet()) {
+                        collectionObject.add(docEntry.getKey(),
+                                context.serialize(docEntry.getValue()));
+                    }
+                    nestedCollectionsObject.add(collectionEntry.getKey(), collectionObject);
+                }
+            } catch (Exception e) {
+                // Handle potential reflection errors
+                System.err.println("Error serializing nested collections: " + e.getMessage());
+            }
+
+            jsonObject.add("nestedCollections", nestedCollectionsObject);
+
+            return jsonObject;
+        }
+
+        @Override
+        public Document deserialize(JsonElement json, Type type,
+                                    JsonDeserializationContext context) throws JsonParseException {
+            JsonObject jsonObject = json.getAsJsonObject();
+
+            // Deserialize document ID
+            String id = jsonObject.get("id").getAsString();
+            Document document = new Document(id);
+
+            // Deserialize document data
+            if (jsonObject.has("data")) {
+                JsonObject dataObject = jsonObject.getAsJsonObject("data");
+                for (Map.Entry<String, JsonElement> entry : dataObject.entrySet()) {
+                    document.set(entry.getKey(),
+                            context.deserialize(entry.getValue(), Object.class));
+                }
+            }
+
+            // Deserialize nested collections
+            if (jsonObject.has("nestedCollections")) {
+                JsonObject nestedCollectionsObject =
+                        jsonObject.getAsJsonObject("nestedCollections");
+
+                for (Map.Entry<String, JsonElement> collectionEntry :
+                        nestedCollectionsObject.entrySet()) {
+                    String collectionName = collectionEntry.getKey();
+                    document.createNestedCollection(collectionName);
+
+                    JsonObject collectionObject = collectionEntry.getValue().getAsJsonObject();
+                    for (Map.Entry<String, JsonElement> docEntry :
+                            collectionObject.entrySet()) {
+                        Document nestedDoc = context.deserialize(docEntry.getValue(), Document.class);
+                        document.getNestedDocuments(collectionName)
+                                .put(nestedDoc.getId(), nestedDoc);
+                    }
+                }
+            }
+
+            return document;
+        }
+    }
+
+    public Document getNestedDocument(String collectionName, String documentId,
+                                      String nestedCollectionName, String nestedDocumentId) {
+        Document parentDocument = getDocument(collectionName, documentId);
+        if (parentDocument != null) {
+            return parentDocument.getNestedDocument(nestedCollectionName, nestedDocumentId);
+        }
+        return null;
     }
 }

@@ -13,9 +13,6 @@ public class Main {
         this.scanner = new Scanner(System.in);
     }
 
-    /**
-     * Start the interactive terminal interface
-     */
     public void start() {
         while (true) {
             printMenu();
@@ -40,6 +37,9 @@ public class Main {
                 case 6:
                     updateDocument();
                     break;
+                case 7:
+                    manageNestedDocuments();
+                    break;
                 case 0:
                     System.out.println("Exiting Sam's Mini Firebase Terminal Interface. Goodbye!");
                     return;
@@ -49,9 +49,6 @@ public class Main {
         }
     }
 
-    /**
-     * Print the menu of available operations
-     */
     private void printMenu() {
         System.out.println("\n---Sam's Mini Firebase Terminal Interface ---");
         System.out.println("1. Add Document");
@@ -60,12 +57,14 @@ public class Main {
         System.out.println("4. Delete Document");
         System.out.println("5. Find Documents");
         System.out.println("6. Update Document");
+        System.out.println("7. Manage Nested Documents");
         System.out.println("0. Exit");
         System.out.print("Enter your choice: ");
     }
 
     /**
      * Get user's menu choice
+     *
      * @return Selected menu option
      */
     private int getUserChoice() {
@@ -234,6 +233,97 @@ public class Main {
             System.out.println("Document updated successfully!");
         } else {
             System.out.println("Document not found.");
+        }
+    }
+
+    private void manageNestedDocuments() {
+        System.out.println("\nNested Documents Management:");
+        System.out.println("1. Add Nested Document");
+        System.out.println("2. Retrieve Nested Document");
+        System.out.print("Enter your choice: ");
+
+        int choice = getUserChoice();
+
+        switch (choice) {
+            case 1:
+                addNestedDocument();
+                break;
+            case 2:
+                retrieveNestedDocument();
+                break;
+            default:
+                System.out.println("Invalid choice.");
+        }
+    }
+
+    private void addNestedDocument() {
+        System.out.print("Enter parent collection name: ");
+        String parentCollectionName = scanner.nextLine();
+
+        System.out.print("Enter parent document ID: ");
+        String parentDocumentId = scanner.nextLine();
+
+        Document parentDocument = db.getDocument(parentCollectionName, parentDocumentId);
+
+        if (parentDocument == null) {
+            System.out.println("Parent document not found.");
+            return;
+        }
+
+        System.out.print("Enter nested collection name: ");
+        String nestedCollectionName = scanner.nextLine();
+
+        System.out.print("Enter nested document ID: ");
+        String nestedDocumentId = scanner.nextLine();
+
+        Document nestedDocument = parentDocument.addNestedDocument(nestedCollectionName, nestedDocumentId);
+
+        while (true) {
+            System.out.print("Enter nested document field name (or 'done' to finish): ");
+            String fieldName = scanner.nextLine();
+
+            if ("done".equalsIgnoreCase(fieldName)) {
+                break;
+            }
+
+            System.out.print("Enter value for " + fieldName + ": ");
+            String fieldValue = scanner.nextLine();
+
+            // Try to parse numeric values
+            try {
+                int intValue = Integer.parseInt(fieldValue);
+                nestedDocument.set(fieldName, intValue);
+            } catch (NumberFormatException e) {
+                nestedDocument.set(fieldName, fieldValue);
+            }
+        }
+
+        System.out.println("Nested document added successfully!");
+    }
+
+    private void retrieveNestedDocument() {
+        System.out.print("Enter parent collection name: ");
+        String parentCollectionName = scanner.nextLine();
+
+        System.out.print("Enter parent document ID: ");
+        String parentDocumentId = scanner.nextLine();
+
+        System.out.print("Enter nested collection name: ");
+        String nestedCollectionName = scanner.nextLine();
+
+        System.out.print("Enter nested document ID: ");
+        String nestedDocumentId = scanner.nextLine();
+
+        Document nestedDocument = db.getNestedDocument(
+                parentCollectionName, parentDocumentId,
+                nestedCollectionName, nestedDocumentId
+        );
+
+        if (nestedDocument != null) {
+            System.out.println("Nested Document found:");
+            System.out.println(nestedDocument);
+        } else {
+            System.out.println("Nested document not found.");
         }
     }
 
