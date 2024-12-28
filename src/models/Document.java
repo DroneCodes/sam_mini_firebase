@@ -33,6 +33,14 @@ public class Document {
     }
 
     /**
+     * Get all nested collections in the document
+     * @return Map of collection names to their documents
+     */
+    public Map<String, Map<String, Document>> getNestedCollections() {
+        return nestedCollections;
+    }
+
+    /**
      * Create a nested collection within this document
      * @param collectionName Name of the nested collection
      */
