@@ -82,10 +82,21 @@ public class Main {
         System.out.print("Enter collection name: ");
         String collectionName = scanner.nextLine();
 
-        System.out.print("Enter document ID: ");
-        String documentId = scanner.nextLine();
+        System.out.print("Would you like to generate an ID automatically? (y/n): ");
+        String choice = scanner.nextLine();
 
-        Document document = db.addDocument(collectionName, documentId);
+        Document document;
+        String documentId; // Declare documentId outside the if/else block
+
+        if (choice.toLowerCase().startsWith("y")) {
+            document = db.addDocumentWithAutoId(collectionName);
+            documentId = document.getId(); // Store the generated ID
+            System.out.println("Generated document ID: " + documentId);
+        } else {
+            System.out.print("Enter document ID: ");
+            documentId = scanner.nextLine(); // Store the manually entered ID
+            document = db.addDocument(collectionName, documentId);
+        }
 
         while (true) {
             System.out.print("Enter field name (or 'done' to finish): ");
@@ -101,9 +112,9 @@ public class Main {
             // Try to parse numeric values
             try {
                 int intValue = Integer.parseInt(fieldValue);
-                document.set(fieldName, intValue);
+                db.updateDocumentField(collectionName, documentId, fieldName, intValue);
             } catch (NumberFormatException e) {
-                document.set(fieldName, fieldValue);
+                db.updateDocumentField(collectionName, documentId, fieldName, fieldValue);
             }
         }
 

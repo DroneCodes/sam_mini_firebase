@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
 import java.lang.reflect.Type;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -82,6 +83,29 @@ public class SamDatabase {
     }
 
     /**
+     * Generate a unique document ID
+     * Combines timestamp and partial UUID for uniqueness
+     * @return A unique document ID
+     */
+    public String generateDocumentId() {
+        // Get current timestamp in milliseconds
+        String timestamp = String.valueOf(Instant.now().toEpochMilli());
+        // Get first 8 characters of a UUID
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+        return timestamp + "-" + uniqueId;
+    }
+
+    /**
+     * Add a document with an auto-generated ID
+     * @param collectionName Name of the collection
+     * @return The created document
+     */
+    public Document addDocumentWithAutoId(String collectionName) {
+        String documentId = generateDocumentId();
+        return addDocument(collectionName, documentId);
+    }
+
+    /**
      * Add a document to a collection
      * @param collectionName Name of the collection
      * @param documentId ID of the document
@@ -154,6 +178,24 @@ public class SamDatabase {
                     return docValue != null && docValue.equals(value);
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Update a document's field and save the database
+     * @param collectionName Name of the collection
+     * @param documentId ID of the document
+     * @param key Field key to update
+     * @param value Value to set
+     * @return true if update was successful, false otherwise
+     */
+    public boolean updateDocumentField(String collectionName, String documentId, String key, Object value) {
+        Document document = getDocument(collectionName, documentId);
+        if (document != null) {
+            document.set(key, value);
+            saveDatabase(); // Save after updating the field
+            return true;
+        }
+        return false;
     }
 
     /**
