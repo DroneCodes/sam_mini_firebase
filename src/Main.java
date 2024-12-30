@@ -332,7 +332,13 @@ public class Main {
 
         if (nestedDocument != null) {
             System.out.println("Nested Document found:");
-            System.out.println(nestedDocument);
+            System.out.println("ID: " + nestedDocument.getId());
+            System.out.println("Data: " + nestedDocument.getData());
+            System.out.println("Nested Collections: ");
+            for (String collection : nestedDocument.getNestedCollections().keySet()) {
+                System.out.println("  - " + collection + ": " +
+                        nestedDocument.getNestedDocuments(collection).size() + " documents");
+            }
         } else {
             System.out.println("Nested document not found.");
         }

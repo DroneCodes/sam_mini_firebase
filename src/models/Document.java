@@ -103,10 +103,22 @@ public class Document {
      */
     @Override
     public String toString() {
-        return "Document{" +
-                "id='" + id + '\'' +
-                ", data=" + data +
-                ", nestedCollections=" + nestedCollections.keySet() +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Document{")
+                .append("id='").append(id).append('\'')
+                .append(", data=").append(data)
+                .append(", nestedCollections={");
+
+        for (Map.Entry<String, Map<String, Document>> collection : nestedCollections.entrySet()) {
+            sb.append("\n  ").append(collection.getKey()).append(": {");
+            for (Map.Entry<String, Document> doc : collection.getValue().entrySet()) {
+                sb.append("\n    ").append(doc.getKey()).append(": ")
+                        .append(doc.getValue().getData());
+            }
+            sb.append("\n  }");
+        }
+
+        sb.append("\n}}");
+        return sb.toString();
     }
 }

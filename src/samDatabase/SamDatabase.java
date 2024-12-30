@@ -205,8 +205,7 @@ public class SamDatabase {
             implements JsonSerializer<Document>, JsonDeserializer<Document> {
 
         @Override
-        public JsonElement serialize(Document document, Type type,
-                                     JsonSerializationContext context) {
+        public JsonElement serialize(Document document, Type type, JsonSerializationContext context) {
             JsonObject jsonObject = new JsonObject();
 
             // Serialize basic document data
@@ -219,34 +218,22 @@ public class SamDatabase {
             }
             jsonObject.add("data", dataObject);
 
-            // Serialize nested collections
+            // Serialize nested collections directly without reflection
             JsonObject nestedCollectionsObject = new JsonObject();
-            // You would need a method in Document to get nested collections
-            // This is a placeholder and might need adjustment based on exact implementation
-            try {
-                java.lang.reflect.Method getNestedCollectionsMethod =
-                        document.getClass().getDeclaredMethod("getNestedCollections");
-                getNestedCollectionsMethod.setAccessible(true);
-                Map<String, Map<String, Document>> nestedCollections =
-                        (Map<String, Map<String, Document>>) getNestedCollectionsMethod.invoke(document);
+            Map<String, Map<String, Document>> nestedCollections = document.getNestedCollections();
 
-                for (Map.Entry<String, Map<String, Document>> collectionEntry :
-                        nestedCollections.entrySet()) {
-                    JsonObject collectionObject = new JsonObject();
-                    for (Map.Entry<String, Document> docEntry :
-                            collectionEntry.getValue().entrySet()) {
-                        collectionObject.add(docEntry.getKey(),
-                                context.serialize(docEntry.getValue()));
-                    }
-                    nestedCollectionsObject.add(collectionEntry.getKey(), collectionObject);
+            for (Map.Entry<String, Map<String, Document>> collectionEntry :
+                    nestedCollections.entrySet()) {
+                JsonObject collectionObject = new JsonObject();
+                for (Map.Entry<String, Document> docEntry :
+                        collectionEntry.getValue().entrySet()) {
+                    collectionObject.add(docEntry.getKey(),
+                            context.serialize(docEntry.getValue()));
                 }
-            } catch (Exception e) {
-                // Handle potential reflection errors
-                System.err.println("Error serializing nested collections: " + e.getMessage());
+                nestedCollectionsObject.add(collectionEntry.getKey(), collectionObject);
             }
 
             jsonObject.add("nestedCollections", nestedCollectionsObject);
-
             return jsonObject;
         }
 
